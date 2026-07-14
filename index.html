@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>想和妳變得更親密 💕</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,11 +19,16 @@
       --purple-mid:  #9b5de5;
       --cream:       #fff5f9;
       --text-dark:   #3a1a2e;
+      --bg-gradient-start: #ffdde1;
+      --bg-gradient-end: #ee9ca7;
+      --glass-bg: rgba(255, 255, 255, 0.4);
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
     }
 
     body {
-      font-family: 'Press Start 2P', monospace;
-      background: var(--cream);
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
       color: var(--text-dark);
       min-height: 100vh;
       display: flex;
@@ -93,28 +99,37 @@
     }
 
     .card {
-      background: #fff;
-      border: 4px solid var(--pink-deep);
-      box-shadow: 8px 8px 0px var(--pink-mid);
-      padding: 36px 32px;
-      max-width: 520px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      border-radius: 24px;
+      padding: 48px 36px;
+      max-width: 480px;
       width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 28px;
+      gap: 24px;
+      text-align: center;
+      transition: transform 0.3s ease;
     }
 
     /* PAGE 1 */
     .pixel-img {
-      width: 220px;
-      height: 220px;
-      object-fit: contain;
-      image-rendering: pixelated;
-      animation: bounce 1.6s ease-in-out infinite;
-      border: 3px solid var(--pink-mid);
-      background: var(--pink-light);
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      animation: gentleFloat 4s ease-in-out infinite;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
       padding: 8px;
+      box-shadow: inset 0 4px 8px rgba(0,0,0,0.05), 0 8px 24px rgba(232, 62, 140, 0.2);
+    }
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
     }
 
     @keyframes bounce {
@@ -123,11 +138,12 @@
     }
 
     .title {
-      font-size: clamp(10px, 2.5vw, 14px);
+      font-size: clamp(24px, 6vw, 32px);
+      font-weight: 700;
       color: var(--pink-darker);
       text-align: center;
-      line-height: 2.2;
-      text-shadow: 2px 2px 0 var(--pink-light);
+      line-height: 1.4;
+      text-shadow: 0 2px 4px rgba(255,255,255,0.5);
     }
 
     .btn-row {
@@ -142,36 +158,36 @@
     }
 
     .btn {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      padding: 12px 28px;
-      border: 3px solid;
+      padding: 14px 32px;
+      border: none;
+      border-radius: 50px;
       user-select: none;
       white-space: nowrap;
+      transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      touch-action: manipulation;
     }
 
     .btn-yes {
-      background: var(--pink-deep);
+      background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
       color: #fff;
-      border-color: var(--pink-darker);
-      box-shadow: 4px 4px 0 var(--pink-darker);
-      transition: background 0.12s, transform 0.08s;
     }
     .btn-yes:hover {
-      background: var(--purple-mid);
-      border-color: #6a2db5;
-      box-shadow: 4px 4px 0 #6a2db5;
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(255, 117, 140, 0.4);
     }
-    .btn-yes:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--pink-darker); }
+    .btn-yes:active { transform: translateY(1px) scale(0.95); }
 
     .btn-no {
-      background: #b0b0b0;
-      color: #fff;
-      border-color: #888;
-      box-shadow: 4px 4px 0 #888;
+      background: #f0f0f0;
+      color: #888;
       position: fixed;
-      transition: none;
+      z-index: 100;
+      transition: top 0.2s ease-out, left 0.2s ease-out;
     }
 
     .pixel-divider {
@@ -215,50 +231,62 @@
     }
 
     .btn-option {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
-      padding: 14px 10px;
-      border: 3px solid var(--purple-mid);
-      background: var(--pink-light);
+      padding: 16px 12px;
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.6);
       color: var(--purple-mid);
-      box-shadow: 3px 3px 0 var(--purple-soft);
       text-align: center;
-      line-height: 1.8;
-      transition: background 0.12s, transform 0.08s, box-shadow 0.08s;
+      line-height: 1.5;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       user-select: none;
     }
     .btn-option:hover {
-      background: var(--purple-mid);
-      color: #fff;
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0 var(--pink-deep);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--purple-mid);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(155, 93, 229, 0.2);
+      border-color: rgba(255,255,255,0.8);
     }
     .btn-option:active {
-      transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0 var(--pink-deep);
+      transform: translateY(2px) scale(0.98);
     }
 
     /* PAGE 3 */
     .response-text {
-      font-size: clamp(8px, 2vw, 11px);
-      color: var(--pink-darker);
+      font-size: clamp(16px, 4vw, 18px);
+      color: var(--text-dark);
       text-align: center;
-      line-height: 2.4;
+      line-height: 1.8;
+      font-weight: 500;
+    }
+    .response-text span {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--pink-deep);
+      display: block;
+      margin: 16px 0;
     }
 
     .btn-back {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 9px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
-      padding: 10px 22px;
-      border: 3px solid var(--pink-deep);
-      background: var(--cream);
-      color: var(--pink-deep);
-      box-shadow: 3px 3px 0 var(--pink-mid);
-      transition: background 0.12s;
+      padding: 12px 24px;
+      border: 2px solid rgba(255,255,255,0.8);
+      border-radius: 50px;
+      background: rgba(255,255,255,0.3);
+      color: var(--text-dark);
+      transition: all 0.3s ease;
+      margin-top: 16px;
     }
-    .btn-back:hover { background: var(--pink-light); }
+    .btn-back:hover { background: rgba(255,255,255,0.6); transform: translateX(-4px); }
 
     /* CONFETTI */
     .confetti-piece {
@@ -273,37 +301,43 @@
     }
 
     @media (max-width: 480px) {
-      .card { padding: 24px 16px; }
+      .card { padding: 40px 24px; border-radius: 20px; }
       .option-grid { grid-template-columns: 1fr; }
-      .pixel-img { width: 160px; height: 160px; }
+      .pixel-img { width: 150px; height: 150px; }
+      .btn { padding: 14px 24px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="bg-stars" id="bgStars"></div>
+  <div class="bg-orbs" id="bgOrbs" aria-hidden="true"></div>
 
   <!-- PAGE 1 -->
-  <div class="page active" id="page1">
-    <div class="card">
-      <img class="pixel-img" src="pixel_couple.png" alt="可愛像素小人" />
-      <div class="pixel-divider"></div>
-      <p class="title">✨ 想和妳<br/>變得更親密 ✨</p>
-      <div class="pixel-divider"></div>
-      <div class="btn-row">
-        <button class="btn btn-yes" id="btnYes" onclick="handleYes()">💗 要</button>
-        <button class="btn btn-no"  id="btnNo">不要</button>
+  <main class="page active" id="page1">
+    <section class="card" aria-label="邀請卡">
+      <div class="hero-img-container" style="width: 180px; height: 180px; border-radius: 50%; padding: 8px; background: rgba(255, 255, 255, 0.3); box-shadow: inset 0 4px 8px rgba(0,0,0,0.05), 0 8px 24px rgba(232, 62, 140, 0.2); animation: gentleFloat 4s ease-in-out infinite; margin-bottom: 8px;">
+        <img class="pixel-img" src="pixel_couple.png" alt="可愛的情侶頭像" style="width: 100%; height: 100%; border-radius: 50%; box-shadow: none; animation: none; background: transparent; padding: 0;" />
       </div>
-    </div>
-  </div>
+      <div>
+        <h1 class="title">想和妳變得更親密</h1>
+        <p class="options-label" style="text-transform:none; margin-bottom:16px;">給最特別的妳，一個小小的邀請 ✨</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-yes" id="btnYes" onclick="handleYes()" aria-label="答應邀請">💗 我願意</button>
+        <button class="btn btn-no" id="btnNo" aria-label="拒絕邀請">先不要</button>
+      </div>
+    </section>
+  </main>
 
   <!-- PAGE 2 -->
-  <div class="page" id="page2">
-    <div class="card">
-      <div class="big-emoji">🤝</div>
-      <p class="title" style="color: var(--purple-mid);">那我們從<br/>牽手開始吧！</p>
-      <div class="pixel-divider"></div>
-      <p class="options-label">── 接下來妳想要… ──</p>
+  <main class="page" id="page2">
+    <section class="card" aria-label="選擇約會方式">
+      <div class="big-emoji" aria-hidden="true">🤝</div>
+      <div>
+        <h1 class="title" style="color: var(--purple-mid); font-size: 28px;">那我們從牽手開始吧！</h1>
+        <p class="options-label" style="text-transform:none; margin-bottom:16px;">選一個妳最喜歡的方式</p>
+      </div>
+      <p class="options-label">── 接下來想要... ──</p>
       <div class="option-grid">
         <button class="btn-option" onclick="handleOption('一起散步牽手 🌸')">一起散步<br/>牽手 🌸</button>
         <button class="btn-option" onclick="handleOption('一起看電影 🎬')">一起看<br/>電影 🎬</button>
@@ -312,97 +346,150 @@
         <button class="btn-option" onclick="handleOption('一起拍可愛的合照 📸')">一起拍<br/>合照 📸</button>
         <button class="btn-option" onclick="handleOption('以上全部都要 💖')">以上<br/>全部都要 💖</button>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
   <!-- PAGE 3 -->
-  <div class="page" id="page3">
-    <div class="card">
-      <div class="big-emoji" id="p3Emoji">💕</div>
-      <p class="title" style="color: var(--purple-mid);">太好了！！</p>
-      <div class="pixel-divider"></div>
+  <main class="page" id="page3">
+    <section class="card" aria-label="約會確認">
+      <div class="big-emoji" id="p3Emoji" aria-hidden="true">💕</div>
+      <h1 class="title" style="color: var(--purple-mid); font-size: 32px;">太好了！！</h1>
+      
       <p class="response-text">
-        妳選擇了…<br/><br/>
-        <span id="chosenOption" style="color:var(--pink-deep)"></span>
-        <br/><br/>
-        那就說好囉，<br/>期待和妳在一起的<br/>每一刻 ✨
+        妳選擇了...
+        <span id="chosenOption"></span>
+        那就說好囉，<br/>期待和妳在一起的每一刻 ✨
       </p>
-      <div class="pixel-divider"></div>
-      <button class="btn-back" onclick="goBack()">← 重新選擇</button>
-    </div>
-  </div>
+      
+      <button class="btn-back" onclick="goBack()" aria-label="重新選擇">← 重新選擇</button>
+    </section>
+  </main>
 
-  <script>
-    // ── Background decoration ──
+    <script>
+    // ── Ambient Background Orbs ──
     (function() {
-      const bg = document.getElementById('bgStars');
-      for (let i = 0; i < 12; i++) {
-        const s = document.createElement('div');
-        s.className = 'star';
-        s.style.cssText = `left:${Math.random()*95}%;top:${Math.random()*95}%;animation-delay:${(Math.random()*2).toFixed(2)}s;animation-duration:${(1.5+Math.random()*2).toFixed(2)}s;opacity:${(0.2+Math.random()*0.5).toFixed(2)};transform:scale(${(0.4+Math.random()*0.6).toFixed(2)});`;
-        bg.appendChild(s);
-      }
-      const hearts = ['💗','💕','💖','✨','🌸','💓'];
-      for (let i = 0; i < 10; i++) {
-        const h = document.createElement('div');
-        h.className = 'heart-bg';
-        h.textContent = hearts[Math.floor(Math.random()*hearts.length)];
-        h.style.cssText = `left:${Math.random()*95}%;animation-duration:${(6+Math.random()*8).toFixed(1)}s;animation-delay:${(Math.random()*8).toFixed(1)}s;font-size:${14+Math.floor(Math.random()*18)}px;`;
-        bg.appendChild(h);
+      const bg = document.getElementById('bgOrbs');
+      const colors = [
+        'rgba(255, 117, 140, 0.4)', // Pink
+        'rgba(155, 93, 229, 0.3)',  // Purple
+        'rgba(255, 255, 255, 0.5)'  // White
+      ];
+      for (let i = 0; i < 6; i++) {
+        const o = document.createElement('div');
+        o.className = 'orb';
+        const size = 150 + Math.random() * 200;
+        o.style.cssText = `
+          position: absolute;
+          border-radius: 50%;
+          width: ${size}px; height: ${size}px;
+          left: ${Math.random() * 100 - 10}%; top: ${Math.random() * 100 - 10}%;
+          background: radial-gradient(circle, ${colors[i%3]} 0%, rgba(255,255,255,0) 70%);
+          animation: floatOrb 10s ease-in-out infinite alternate;
+          animation-delay: ${(Math.random() * 5).toFixed(2)}s;
+          animation-duration: ${(8 + Math.random() * 6).toFixed(2)}s;
+          opacity: 0.5;
+        `;
+        bg.appendChild(o);
       }
     })();
 
-    // ── Escaping NO button ──
+        // ── Escaping NO button (Smooth & Mobile Friendly) ──
     const btnNo = document.getElementById('btnNo');
-    let noX = 0, noY = 0, initialized = false;
+    let noX = 0, noY = 0, btnW = 0, btnH = 0, initialized = false;
+    let escapeRAF = null;
 
     function initNoPos() {
       if (initialized) return;
       const r = btnNo.getBoundingClientRect();
       noX = r.left; noY = r.top;
+      btnW = r.width; btnH = r.height;
       btnNo.style.position = 'fixed';
       btnNo.style.left = noX + 'px';
       btnNo.style.top  = noY + 'px';
-      btnNo.style.zIndex = '100';
+      btnNo.style.margin = '0';
       initialized = true;
     }
 
     function escape(cx, cy) {
       initNoPos();
-      const r = btnNo.getBoundingClientRect();
-      const bx = r.left + r.width  / 2;
-      const by = r.top  + r.height / 2;
-      const dx = bx - cx, dy = by - cy;
-      const d  = Math.sqrt(dx*dx + dy*dy) || 1;
-      const spd = 180;
-      let nx = noX + (dx/d)*spd;
-      let ny = noY + (dy/d)*spd;
-      nx = Math.max(8, Math.min(nx, window.innerWidth  - r.width  - 8));
-      ny = Math.max(8, Math.min(ny, window.innerHeight - r.height - 8));
-      noX = nx; noY = ny;
-      btnNo.style.left = noX + 'px';
-      btnNo.style.top  = noY + 'px';
-    }
-
-    btnNo.addEventListener('mouseover', e => escape(e.clientX, e.clientY));
-    btnNo.addEventListener('mousemove', e => escape(e.clientX, e.clientY));
-    btnNo.addEventListener('touchstart', e => { escape(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, { passive:false });
-    btnNo.addEventListener('touchmove',  e => { escape(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, { passive:false });
-
-    // ── Confetti ──
-    function burst() {
-      const colors = ['#ff9ec5','#e0559a','#c9a8f5','#9b5de5','#ffd6e7','#fff'];
-      for (let i = 0; i < 60; i++) {
-        const c = document.createElement('div');
-        c.className = 'confetti-piece';
-        const sz = 6 + Math.random()*10;
-        c.style.cssText = `left:${20+Math.random()*60}%;top:${10+Math.random()*30}%;width:${sz}px;height:${sz}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>.5?'50%':'0'};animation-duration:${(0.8+Math.random()*1.5).toFixed(2)}s;animation-delay:${(Math.random()*.4).toFixed(2)}s;`;
-        document.body.appendChild(c);
-        setTimeout(() => c.remove(), 2500);
+      
+      const bx = noX + btnW / 2;
+      const by = noY + btnH / 2;
+      
+      let dx = bx - cx;
+      let dy = by - cy;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      
+      if (dist < 120) {
+        if (dx === 0 && dy === 0) {
+          dx = Math.random() > 0.5 ? 1 : -1;
+          dy = Math.random() > 0.5 ? 1 : -1;
+        }
+        
+        const safeDist = dist || 1; 
+        const pushForce = 150; 
+        
+        let nx = noX + (dx / safeDist) * pushForce;
+        let ny = noY + (dy / safeDist) * pushForce;
+        
+        const padding = 16;
+        nx = Math.max(padding, Math.min(nx, window.innerWidth - btnW - padding));
+        ny = Math.max(padding, Math.min(ny, window.innerHeight - btnH - padding));
+        
+        noX = nx; 
+        noY = ny;
+        btnNo.style.left = noX + 'px';
+        btnNo.style.top  = noY + 'px';
       }
     }
 
-    // ── Navigation ──
+    function handleMove(cx, cy) {
+      if (escapeRAF) cancelAnimationFrame(escapeRAF);
+      escapeRAF = requestAnimationFrame(() => escape(cx, cy));
+    }
+
+    btnNo.addEventListener('mouseover', e => handleMove(e.clientX, e.clientY));
+    btnNo.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
+    
+    document.addEventListener('touchmove', e => {
+      if (document.getElementById('page1').classList.contains('active')) {
+        handleMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    btnNo.addEventListener('click', e => {
+      e.preventDefault();
+      escape(e.clientX ?? window.innerWidth/2, e.clientY ?? window.innerHeight/2);
+    });
+
+    // ── Confetti Particle System ──
+    function burst() {
+      const colors = ['#ff758c', '#ff7eb3', '#9b5de5', '#c9a8f5', '#fff'];
+      for (let i = 0; i < 80; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti-piece';
+        const sz = 8 + Math.random() * 12; 
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        const left = 30 + Math.random() * 40; 
+        const delay = Math.random() * 0.3;
+        const duration = 1.2 + Math.random() * 1.5;
+        
+        c.style.cssText = `
+          left: ${left}%; top: 50%;
+          width: ${sz}px; height: ${sz}px;
+          background: ${color};
+          border-radius: ${Math.random() > 0.5 ? '50%' : '4px'};
+          animation-duration: ${duration}s;
+          animation-delay: ${delay}s;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        `;
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), (duration + delay) * 1000);
+      }
+    }
+
+    // ── Navigation Logic ──
     function showPage(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -410,25 +497,27 @@
 
     function handleYes() {
       burst();
-      setTimeout(() => showPage('page2'), 500);
+      setTimeout(() => showPage('page2'), 600);
     }
 
     function handleOption(opt) {
       document.getElementById('chosenOption').textContent = opt;
       const map = {
-        '一起散步牽手 🌸':'🌸',
-        '一起看電影 🎬':'🎬',
-        '一起吃飯約會 🍜':'🍜',
-        '傳訊息聊到天亮 💬':'💬',
-        '一起拍可愛的合照 📸':'📸',
-        '以上全部都要 💖':'🥰'
+        '一起散步牽手 🌸': '🌸',
+        '一起看電影 🎬': '🎬',
+        '一起吃飯約會 🍜': '🍜',
+        '傳訊息聊到天亮 💬': '💬',
+        '一起拍可愛的合照 📸': '📸',
+        '以上全部都要 💖': '🥰'
       };
       document.getElementById('p3Emoji').textContent = map[opt] || '💕';
       burst();
-      setTimeout(() => showPage('page3'), 400);
+      setTimeout(() => showPage('page3'), 500);
     }
 
-    function goBack() { showPage('page2'); }
+    function goBack() { 
+      showPage('page2'); 
+    }
   </script>
 </body>
 </html>
