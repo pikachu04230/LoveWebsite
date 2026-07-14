@@ -408,10 +408,17 @@
 
     function initNoPos() {
       if (initialized) return;
+      const card = btnNo.closest('.card');
+      card.style.position = 'relative'; // Ensure relative bounds
+      
+      const cardRect = card.getBoundingClientRect();
       const r = btnNo.getBoundingClientRect();
-      noX = r.left; noY = r.top;
+      
+      noX = r.left - cardRect.left;
+      noY = r.top - cardRect.top;
       btnW = r.width; btnH = r.height;
-      btnNo.style.position = 'fixed';
+      
+      btnNo.style.position = 'absolute';
       btnNo.style.left = noX + 'px';
       btnNo.style.top  = noY + 'px';
       btnNo.style.margin = '0';
@@ -442,32 +449,35 @@
         btnNo.textContent = '妳按不到的啦 😜';
       }
 
-      // Determine 'cursor' position to stay away from
+      const card = btnNo.closest('.card');
+      const cardRect = card.getBoundingClientRect();
+
       let cx = noX + btnW / 2;
       let cy = noY + btnH / 2;
       if (e) {
         if (e.type === 'touchstart' && e.touches && e.touches.length > 0) {
-          cx = e.touches[0].clientX;
-          cy = e.touches[0].clientY;
+          cx = e.touches[0].clientX - cardRect.left;
+          cy = e.touches[0].clientY - cardRect.top;
         } else if (e.clientX !== undefined) {
-          cx = e.clientX;
-          cy = e.clientY;
+          cx = e.clientX - cardRect.left;
+          cy = e.clientY - cardRect.top;
         } else if (e.type === 'focus') {
           btnNo.blur();
         }
       }
 
-      const maxX = window.innerWidth - btnW;
-      const maxY = window.innerHeight - btnH;
+      const padding = 10;
+      const maxX = cardRect.width - btnW - padding * 2;
+      const maxY = cardRect.height - btnH - padding * 2;
       let nx, ny, dist;
       let attempts = 0;
       
       do {
-        nx = Math.random() * maxX;
-        ny = Math.random() * maxY;
+        nx = padding + Math.random() * maxX;
+        ny = padding + Math.random() * maxY;
         dist = Math.sqrt(Math.pow(nx + btnW/2 - cx, 2) + Math.pow(ny + btnH/2 - cy, 2));
         attempts++;
-      } while (dist < 150 && attempts < 15);
+      } while (dist < 80 && attempts < 15);
 
       noX = nx;
       noY = ny;
