@@ -159,7 +159,7 @@
 
     .btn {
       font-family: 'Outfit', sans-serif;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
       cursor: pointer;
       padding: 14px 32px;
@@ -216,7 +216,7 @@
     }
 
     .options-label {
-      font-size: 8px;
+      font-size: clamp(14px, 4vw, 16px);
       color: var(--pink-darker);
       text-align: center;
       line-height: 2;
@@ -232,7 +232,7 @@
 
     .btn-option {
       font-family: 'Outfit', sans-serif;
-      font-size: 15px;
+      font-size: 18px;
       font-weight: 600;
       cursor: pointer;
       padding: 16px 12px;
@@ -397,6 +397,8 @@
     const btnNo = document.getElementById('btnNo');
     let noX = 0, noY = 0, btnW = 0, btnH = 0, initialized = false;
     let escapeRAF = null;
+    let escapeCount = 0;
+    let surrendered = false;
 
     function initNoPos() {
       if (initialized) return;
@@ -411,6 +413,7 @@
     }
 
     function escape(cx, cy) {
+      if (surrendered) return;
       initNoPos();
       
       const bx = noX + btnW / 2;
@@ -421,13 +424,28 @@
       const dist = Math.sqrt(dx*dx + dy*dy);
       
       if (dist < 120) {
+        escapeCount++;
+        
+        if (escapeCount >= 6) {
+          surrendered = true;
+          btnNo.textContent = '好啦我願意';
+          btnNo.style.background = 'linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%)';
+          btnNo.style.color = '#fff';
+          btnNo.style.position = 'static';
+          btnNo.style.left = 'auto';
+          btnNo.style.top = 'auto';
+          return;
+        } else if (escapeCount >= 3) {
+          btnNo.textContent = '妳按不到的啦 😜';
+        }
+
         if (dx === 0 && dy === 0) {
           dx = Math.random() > 0.5 ? 1 : -1;
           dy = Math.random() > 0.5 ? 1 : -1;
         }
         
         const safeDist = dist || 1; 
-        const pushForce = 150; 
+        const pushForce = 150 + (escapeCount * 20); 
         
         let nx = noX + (dx / safeDist) * pushForce;
         let ny = noY + (dy / safeDist) * pushForce;
@@ -444,6 +462,7 @@
     }
 
     function handleMove(cx, cy) {
+      if (surrendered) return;
       if (escapeRAF) cancelAnimationFrame(escapeRAF);
       escapeRAF = requestAnimationFrame(() => escape(cx, cy));
     }
@@ -459,7 +478,11 @@
 
     btnNo.addEventListener('click', e => {
       e.preventDefault();
-      escape(e.clientX ?? window.innerWidth/2, e.clientY ?? window.innerHeight/2);
+      if (surrendered) {
+        handleYes();
+      } else {
+        escape(e.clientX ?? window.innerWidth/2, e.clientY ?? window.innerHeight/2);
+      }
     });
 
     // ── Confetti Particle System ──
@@ -471,12 +494,12 @@
         const sz = 8 + Math.random() * 12; 
         const color = colors[Math.floor(Math.random() * colors.length)];
         
-        const left = 30 + Math.random() * 40; 
+        const left = Math.random() * 100; 
         const delay = Math.random() * 0.3;
         const duration = 1.2 + Math.random() * 1.5;
         
         c.style.cssText = `
-          left: ${left}%; top: 50%;
+          left: ${left}%; top: -10%;
           width: ${sz}px; height: ${sz}px;
           background: ${color};
           border-radius: ${Math.random() > 0.5 ? '50%' : '4px'};
