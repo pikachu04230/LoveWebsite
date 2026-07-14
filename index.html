@@ -230,6 +230,13 @@
       width: 100%;
     }
 
+    #btnNo:not(.surrendered)::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px; bottom: -40px; left: -40px;
+      z-index: -1;
+    }
+
     .btn-option {
       font-family: 'Outfit', sans-serif;
       font-size: 18px;
@@ -396,7 +403,6 @@
         // ── Escaping NO button (Smooth & Mobile Friendly) ──
     const btnNo = document.getElementById('btnNo');
     let noX = 0, noY = 0, btnW = 0, btnH = 0, initialized = false;
-    let escapeRAF = null;
     let escapeCount = 0;
     let surrendered = false;
 
@@ -409,79 +415,76 @@
       btnNo.style.left = noX + 'px';
       btnNo.style.top  = noY + 'px';
       btnNo.style.margin = '0';
+      btnNo.style.transition = 'left 0.2s ease-out, top 0.2s ease-out';
       initialized = true;
     }
 
-    function escape(cx, cy) {
+    function doEscape(e) {
       if (surrendered) return;
+      if (e && e.type === 'touchstart' && e.cancelable) e.preventDefault();
+      
       initNoPos();
-      
-      const bx = noX + btnW / 2;
-      const by = noY + btnH / 2;
-      
-      let dx = bx - cx;
-      let dy = by - cy;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      
-      if (dist < 120) {
-        escapeCount++;
-        
-        if (escapeCount >= 6) {
-          surrendered = true;
-          btnNo.textContent = '好啦我願意';
-          btnNo.style.background = 'linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%)';
-          btnNo.style.color = '#fff';
-          btnNo.style.position = 'static';
-          btnNo.style.left = 'auto';
-          btnNo.style.top = 'auto';
-          return;
-        } else if (escapeCount >= 3) {
-          btnNo.textContent = '妳按不到的啦 😜';
-        }
+      escapeCount++;
 
-        if (dx === 0 && dy === 0) {
-          dx = Math.random() > 0.5 ? 1 : -1;
-          dy = Math.random() > 0.5 ? 1 : -1;
-        }
-        
-        const safeDist = dist || 1; 
-        const pushForce = 150 + (escapeCount * 20); 
-        
-        let nx = noX + (dx / safeDist) * pushForce;
-        let ny = noY + (dy / safeDist) * pushForce;
-        
-        const padding = 16;
-        nx = Math.max(padding, Math.min(nx, window.innerWidth - btnW - padding));
-        ny = Math.max(padding, Math.min(ny, window.innerHeight - btnH - padding));
-        
-        noX = nx; 
-        noY = ny;
-        btnNo.style.left = noX + 'px';
-        btnNo.style.top  = noY + 'px';
+      if (escapeCount >= 6) {
+        surrendered = true;
+        btnNo.classList.add('surrendered');
+        btnNo.textContent = '好啦我願意';
+        btnNo.style.background = 'linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%)';
+        btnNo.style.color = '#fff';
+        btnNo.style.position = 'static';
+        btnNo.style.transform = 'none';
+        btnNo.style.left = 'auto';
+        btnNo.style.top = 'auto';
+        btnNo.style.transition = 'none';
+        return;
+      } else if (escapeCount >= 3) {
+        btnNo.textContent = '妳按不到的啦 😜';
       }
+
+      // Determine 'cursor' position to stay away from
+      let cx = noX + btnW / 2;
+      let cy = noY + btnH / 2;
+      if (e) {
+        if (e.type === 'touchstart' && e.touches && e.touches.length > 0) {
+          cx = e.touches[0].clientX;
+          cy = e.touches[0].clientY;
+        } else if (e.clientX !== undefined) {
+          cx = e.clientX;
+          cy = e.clientY;
+        } else if (e.type === 'focus') {
+          btnNo.blur();
+        }
+      }
+
+      const maxX = window.innerWidth - btnW;
+      const maxY = window.innerHeight - btnH;
+      let nx, ny, dist;
+      let attempts = 0;
+      
+      do {
+        nx = Math.random() * maxX;
+        ny = Math.random() * maxY;
+        dist = Math.sqrt(Math.pow(nx + btnW/2 - cx, 2) + Math.pow(ny + btnH/2 - cy, 2));
+        attempts++;
+      } while (dist < 150 && attempts < 15);
+
+      noX = nx;
+      noY = ny;
+      btnNo.style.left = noX + 'px';
+      btnNo.style.top  = noY + 'px';
     }
 
-    function handleMove(cx, cy) {
-      if (surrendered) return;
-      if (escapeRAF) cancelAnimationFrame(escapeRAF);
-      escapeRAF = requestAnimationFrame(() => escape(cx, cy));
-    }
-
-    btnNo.addEventListener('mouseover', e => handleMove(e.clientX, e.clientY));
-    btnNo.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
-    
-    document.addEventListener('touchmove', e => {
-      if (document.getElementById('page1').classList.contains('active')) {
-        handleMove(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: true });
+    btnNo.addEventListener('mouseenter', doEscape);
+    btnNo.addEventListener('touchstart', doEscape, { passive: false });
+    btnNo.addEventListener('focus', doEscape);
 
     btnNo.addEventListener('click', e => {
       e.preventDefault();
       if (surrendered) {
         handleYes();
       } else {
-        escape(e.clientX ?? window.innerWidth/2, e.clientY ?? window.innerHeight/2);
+        doEscape(e);
       }
     });
 
