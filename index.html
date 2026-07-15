@@ -807,6 +807,12 @@
   </section>
 
   <script>
+    // ── Configuration ──
+    // ⚠️ 警告：這是一個私人專案，將 Webhook URL 直接寫在前端會有被濫用的風險。
+    // 但因為這個網頁只給特定的一個人看，風險極低。若要公開分享，請使用後端中繼站。
+    // 請將下方的空字串換成你的 Discord Webhook 網址
+    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1527038968670064881/EZVhbZ4blQ9TnCeBlZtvHnyFN7PSDwkgksjLqsKEPgWscQTEhJDX7jact1yCQvuNWQ0Q";
+
     // ── Page Lifecycle Callback Map ──
     // One-shot callbacks dispatched by showPage when a target page becomes active.
     // Usage: pageCallbacks['pageN'] = fn; (auto-deleted after first call)
@@ -1235,6 +1241,29 @@
       setTimeout(burst, 200);
       setTimeout(burst, 400);
       setTimeout(burst, 600);
+
+      // ── Discord Webhook Notification ──
+      if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.trim() !== "") {
+        var page2Element = document.getElementById('chosenOption');
+        var page2Opt = page2Element ? page2Element.textContent : '';
+        var page5Opt = typeof chosenPage5Option !== 'undefined' ? chosenPage5Option : '';
+        var p2Text = stripEmoji(page2Opt);
+        var p5Text = stripEmoji(page5Opt);
+
+        var payload = {
+          content: "🎉 對方已經答應了！\n\n**約會方式**：" + p2Text + "\n**親密接觸**：" + p5Text
+        };
+
+        fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        }).catch(function(e) {
+          console.error("Webhook 發送失敗:", e);
+        });
+      }
     }
 
 
