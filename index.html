@@ -852,10 +852,20 @@
 
   <script>
     // ── Configuration ──
-    // ⚠️ 警告：這是一個私人專案，將 Webhook URL 直接寫在前端會有被濫用的風險。
-    // 但因為這個網頁只給特定的一個人看，風險極低。若要公開分享，請使用後端中繼站。
-    // 請將下方的空字串換成你的 Discord Webhook 網址
-    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1527038968670064881/EZVhbZ4blQ9TnCeBlZtvHnyFN7PSDwkgksjLqsKEPgWscQTEhJDX7jact1yCQvuNWQ0Q";
+    // ⚠️ 警告：這是一個私人專案，由於放在 GitHub Pages 等純靜態網頁，無法使用後端隱藏金鑰。
+    // 以下採用了 Base64 字串拆分混淆，這只是基礎防護 (防君子不防小人)，
+    // 主要目的是防止 GitHub 上的自動化爬蟲機器人直接抓取 Webhook 網址並濫發垃圾訊息。
+    // 若要更換 Webhook，請將新網址拆分成四段，分別在瀏覽器 Console 執行 btoa("字串") 後替換下方陣列。
+    const _w = [
+      "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3Mv",
+      "MTUyNzAzODk2ODY3MDA2NDg4MQ==",
+      "L0VaVmhiWjRibFE5VG5DZUJsWnR2SG55Rk43UFNEd2tn",
+      "a3NqTHFzS0VQZ1dzY1FURWhKRFg3amFjdDF5Q1F2dU5XUTBR"
+    ];
+    function getW() {
+      try { return atob(_w[0]) + atob(_w[1]) + atob(_w[2]) + atob(_w[3]); }
+      catch(e) { return ""; }
+    }
 
     // ── Page Lifecycle Callback Map ──
     // One-shot callbacks dispatched by showPage when a target page becomes active.
@@ -1301,7 +1311,8 @@
       setTimeout(burst, 600);
 
       // ── Discord Webhook Notification ──
-      if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.trim() !== "") {
+      const webhookUrl = getW();
+      if (webhookUrl && webhookUrl.trim() !== "") {
         var page2Element = document.getElementById('chosenOption');
         var page2Opt = page2Element ? page2Element.textContent : '';
         var page5Opt = typeof chosenPage5Option !== 'undefined' ? chosenPage5Option : '';
@@ -1313,7 +1324,7 @@
           content: "🎉 對方已經答應了！\n\n**約定時間**：" + dateText + "\n**約會方式**：" + p2Text + "\n**親密接觸**：" + p5Text
         };
 
-        fetch(DISCORD_WEBHOOK_URL, {
+        fetch(webhookUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
