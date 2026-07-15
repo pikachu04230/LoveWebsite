@@ -493,7 +493,7 @@
       .page { padding: 16px 12px; }
 
       .card {
-        padding: 32px 20px;
+        padding: 32px 16px;
         border-radius: 22px;
         gap: 16px;
       }
@@ -502,8 +502,12 @@
         height: 130px;
       }
       .btn {
-        padding: 13px 20px;
+        padding: 12px 20px;
         font-size: 15px;
+        white-space: normal;
+        line-height: 1.4;
+        text-align: center;
+        height: auto;
       }
       .btn-yes {
         padding: 13px 24px;
@@ -527,8 +531,13 @@
         padding: 16px 20px;
         gap: 14px;
       }
+      .option-text {
+        text-align: left;
+      }
       .option-emoji { font-size: 28px; }
       .big-emoji { font-size: 52px; }
+
+      .slider-label { font-size: 13px; }
 
       #btnNo:not(.surrendered)::before {
         top: -20px; right: -20px; bottom: -20px; left: -20px;
@@ -581,14 +590,36 @@
       background: rgba(255, 255, 255, 0.7) !important;
       border-color: transparent !important;
     }
-    .flatpickr-time input:hover, .flatpickr-time .flatpickr-am-pm:hover, .flatpickr-time input:focus, .flatpickr-time .flatpickr-am-pm:focus {
-      background: rgba(255, 255, 255, 0.5) !important;
+    .flatpickr-month {
+      color: var(--text-primary) !important;
+      fill: var(--text-primary) !important;
     }
     .flatpickr-current-month .flatpickr-monthDropdown-months {
       background: transparent !important;
+      color: var(--text-primary) !important;
     }
     .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month {
       background-color: #fff !important;
+      color: var(--text-primary) !important;
+    }
+    .numInputWrapper input, .numInputWrapper input:hover {
+      background: transparent !important;
+      color: var(--text-primary) !important;
+    }
+    .flatpickr-time {
+      border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
+    }
+    .flatpickr-time input, .flatpickr-time .flatpickr-am-pm {
+      color: var(--text-primary) !important;
+    }
+    .flatpickr-prev-month svg, .flatpickr-next-month svg {
+      fill: var(--text-secondary) !important;
+    }
+    .flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg {
+      fill: var(--rose-400) !important;
+    }
+    .flatpickr-time input:hover, .flatpickr-time .flatpickr-am-pm:hover, .flatpickr-time input:focus, .flatpickr-time .flatpickr-am-pm:focus {
+      background: rgba(255, 255, 255, 0.4) !important;
     }
 
     .time-hint {
