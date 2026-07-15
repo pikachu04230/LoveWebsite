@@ -10,7 +10,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     /* ── Reset & Custom Properties ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
 
     :root {
       --rose-100: #ffe0e6;
@@ -495,24 +500,21 @@
         width: 130px;
         height: 130px;
       }
-      /* Base mobile btn — do NOT force 100% width globally */
       .btn {
-        padding: 13px 24px;
+        padding: 13px 20px;
         font-size: 15px;
       }
-      /* Yes button: full-width, prominent */
       .btn-yes {
-        width: 100%;
-        padding: 15px 28px;
-        font-size: 16px;
+        padding: 13px 24px;
       }
-      /* No button: auto width so escape logic has horizontal room */
       .btn-no:not([style*="position: absolute"]) {
-        min-width: 120px;
+        min-width: 100px;
       }
       .btn-row {
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
         align-items: center;
+        justify-content: center;
         gap: 12px;
       }
       .option-grid {
@@ -943,11 +945,16 @@
           attempts++;
         } while (dist < 80 && attempts < 20);
 
+        if (isNaN(nx)) nx = minX;
+        if (isNaN(ny)) ny = minY;
+
         nx = Math.max(minX, Math.min(nx, maxX));
         ny = Math.max(minY, Math.min(ny, maxY));
 
         this.btn.style.left = nx + 'px';
         this.btn.style.top  = ny + 'px';
+        this.btn.style.visibility = 'visible';
+        this.btn.style.opacity = '1';
       }
 
       bindEvents() {
