@@ -650,6 +650,73 @@
       height: 20px;
     }
 
+    /* ── Custom Injected Time Wheel ── */
+    .custom-time-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.2);
+      margin: 8px 16px;
+    }
+    .time-wheel-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100px;
+      margin: 0 16px 16px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+    .time-wheel-overlay {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 30px;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.2);
+      border-top: 1px solid rgba(255, 255, 255, 0.4);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .time-wheel {
+      position: relative;
+      flex: 1;
+      height: 100%;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 35px 0;
+    }
+    .time-wheel::-webkit-scrollbar {
+      display: none;
+    }
+    .wheel-item {
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      scroll-snap-align: center;
+      transition: all 0.2s;
+    }
+    .wheel-item.active {
+      color: var(--rose-500);
+      font-size: 20px;
+      transform: scale(1.1);
+    }
+    .time-wheel-colon {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      padding: 0 5px;
+      z-index: 2;
+    }
+
     .shake {
       animation: shakeX 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
     }
@@ -1205,6 +1272,9 @@
     }
     var chosenPage5Option = '';
     let chosenDate = '';
+    let fpInstance = null;
+    let chosenHour = '12';
+    let chosenMinute = '00';
     
     function handlePage5Option(opt) {
       chosenPage5Option = opt;
@@ -1221,17 +1291,92 @@
 
     // Register one-shot init callback; fires 420ms after page4 transition ends
     pageCallbacks['page4'] = function() {
-      flatpickr("#datePicker", {
-        enableTime: true,
-        dateFormat: "Y-m-d H:i",
-        minDate: "today",
-        disableMobile: true,
-        locale: "zh_tw",
-        onChange: function(selectedDates, dateStr, instance) {
-          document.getElementById('dateHint').style.opacity = '0';
-          document.getElementById('datePicker').classList.remove('shake');
-        }
-      });
+      if (!fpInstance) {
+        fpInstance = flatpickr("#datePicker", {
+          enableTime: false,
+          dateFormat: "Y-m-d H:i",
+          minDate: "today",
+          disableMobile: true,
+          closeOnSelect: false,
+          locale: "zh_tw",
+          onChange: function(selectedDates, dateStr, instance) {
+            document.getElementById('dateHint').style.opacity = '0';
+            document.getElementById('datePicker').classList.remove('shake');
+            if (selectedDates[0]) {
+              selectedDates[0].setHours(parseInt(chosenHour, 10), parseInt(chosenMinute, 10), 0, 0);
+              instance.setDate(selectedDates[0], false);
+            }
+          },
+          onReady: function(selectedDates, dateStr, instance) {
+            var wheelHTML = `
+              <div class="custom-time-divider"></div>
+              <div class="time-wheel-container">
+                <div class="time-wheel-overlay"></div>
+                <div class="time-wheel custom-hour-wheel"></div>
+                <div class="time-wheel-colon">:</div>
+                <div class="time-wheel custom-minute-wheel"></div>
+              </div>
+            `;
+            instance.calendarContainer.insertAdjacentHTML('beforeend', wheelHTML);
+            
+            var hw = instance.calendarContainer.querySelector('.custom-hour-wheel');
+            var mw = instance.calendarContainer.querySelector('.custom-minute-wheel');
+            
+            function populateWheel(wheel, start, end, step, isHour) {
+              var obs = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                  if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    if (isHour) {
+                      chosenHour = entry.target.dataset.value;
+                    } else {
+                      chosenMinute = entry.target.dataset.value;
+                    }
+                    if (instance.selectedDates[0]) {
+                      instance.selectedDates[0].setHours(parseInt(chosenHour, 10), parseInt(chosenMinute, 10), 0, 0);
+                      instance.setDate(instance.selectedDates[0], false);
+                    }
+                  } else {
+                    entry.target.classList.remove('active');
+                  }
+                });
+              }, { root: wheel, rootMargin: "-35px 0px -35px 0px", threshold: 0.5 });
+
+              var targetOffset = 0;
+              for (var i = start; i <= end; i += step) {
+                var val = i < 10 ? '0' + i : '' + i;
+                var div = document.createElement('div');
+                div.className = 'wheel-item';
+                div.textContent = val;
+                div.dataset.value = val;
+                wheel.appendChild(div);
+                obs.observe(div);
+                
+                var targetVal = isHour ? chosenHour : chosenMinute;
+                if (val === targetVal) {
+                  targetOffset = Math.floor((i - start) / step) * 30;
+                }
+              }
+              wheel.dataset.targetScroll = targetOffset;
+            }
+            
+            populateWheel(hw, 0, 23, 1, true);
+            populateWheel(mw, 0, 55, 5, false);
+          },
+          onOpen: function(selectedDates, dateStr, instance) {
+            var hw = instance.calendarContainer.querySelector('.custom-hour-wheel');
+            var mw = instance.calendarContainer.querySelector('.custom-minute-wheel');
+            if (hw && hw.dataset.targetScroll !== undefined) {
+              hw.scrollTop = parseInt(hw.dataset.targetScroll, 10);
+              delete hw.dataset.targetScroll;
+            }
+            if (mw && mw.dataset.targetScroll !== undefined) {
+              mw.scrollTop = parseInt(mw.dataset.targetScroll, 10);
+              delete mw.dataset.targetScroll;
+            }
+          }
+        });
+      }
 
       setTimeout(function() {
         initSlider('sliderTrack', 'sliderThumb', 'sliderLabel', function() {
@@ -1239,7 +1384,8 @@
         }, function() {
           var dp = document.getElementById('datePicker');
           var hint = document.getElementById('dateHint');
-          if (!dp.value) {
+          // Check array length as requested by logic reviewer
+          if (fpInstance.selectedDates.length === 0) {
             dp.classList.remove('shake');
             void dp.offsetWidth; // trigger reflow
             dp.classList.add('shake');
