@@ -710,8 +710,38 @@
     </section>
   </section>
 
-  <!-- PAGE 5: Placeholder (Task 4) -->
-  <section class="page" id="page5"></section>
+  <!-- PAGE 5: Escalation -->
+  <section class="page" id="page5">
+    <section class="card" aria-label="更進一步的邀請">
+      <div class="big-emoji" aria-hidden="true">🫣</div>
+      <div>
+        <h1 class="title">那...接下來呢？</h1>
+        <p class="subtitle">解鎖成功！想要給我什麼獎勵？</p>
+      </div>
+      <p class="section-label">選一個喜歡的</p>
+      <div class="option-grid">
+        <button class="option-card" onclick="handlePage5Option('給我一個抱抱 🤗')">
+          <span class="option-emoji">🤗</span>
+          <span class="option-text">給我一個抱抱</span>
+        </button>
+        <button class="option-card" onclick="handlePage5Option('讓我親妳一下 💋')">
+          <span class="option-emoji">💋</span>
+          <span class="option-text">讓我親妳一下</span>
+        </button>
+        <button class="option-card" onclick="handlePage5Option('一起看夜景聊到很晚 🌙')">
+          <span class="option-emoji">🌙</span>
+          <span class="option-text">一起看夜景聊到很晚</span>
+        </button>
+        <button class="option-card" onclick="handlePage5Option('窩在一起看劇 🛋️')">
+          <span class="option-emoji">🛋️</span>
+          <span class="option-text">窩在一起看劇</span>
+        </button>
+      </div>
+    </section>
+  </section>
+
+  <!-- PAGE 6: Placeholder (Task 5) -->
+  <section class="page" id="page6"></section>
 
   <script>
     // ── Page Lifecycle Callback Map ──
@@ -935,6 +965,13 @@
       document.getElementById('p3Emoji').textContent = emojiMap[opt] || '💗';
       burst();
       setTimeout(function() { showPage('page3'); }, 450);
+    }
+    var chosenPage5Option = '';
+    
+    function handlePage5Option(opt) {
+      chosenPage5Option = opt;
+      burst();
+      setTimeout(function() { showPage('page6'); }, 450);
     }
 
     function goBack() {
