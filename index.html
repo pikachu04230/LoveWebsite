@@ -617,6 +617,30 @@
     @media (hover: hover) {
       .skip-link:hover { opacity: 0.7; }
     }
+
+    /* ── Page 6: Finale ── */
+    .finale-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+    
+    .dynamic-confession {
+      font-size: 16px;
+      margin: 16px 0;
+      line-height: 1.8;
+      color: var(--text-secondary);
+    }
+    
+    .finale-question {
+      font-size: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .success-subtitle {
+      margin-top: 12px;
+    }
   </style>
 </head>
 <body>
@@ -740,8 +764,26 @@
     </section>
   </section>
 
-  <!-- PAGE 6: Placeholder (Task 5) -->
-  <section class="page" id="page6"></section>
+  <!-- PAGE 6: Finale -->
+  <section class="page" id="page6">
+    <section class="card" id="card6" aria-label="告白">
+      <div id="finaleContent" class="finale-container">
+        <div class="big-emoji" aria-hidden="true">💌</div>
+        <h1 class="title">我真的很喜歡妳</h1>
+        <p class="dynamic-confession" id="dynamicConfession"></p>
+        <p class="title finale-question">我們可以在一起嗎？</p>
+        <div class="btn-row" id="btnRow2">
+          <button class="btn btn-yes" onclick="handleFinaleYes()" aria-label="願意">願意 💗</button>
+          <button class="btn btn-no" id="btnNo2" aria-label="讓我再想想">讓我再想想</button>
+        </div>
+      </div>
+      <div id="successContent" class="finale-container" style="display: none;">
+        <div class="big-emoji" aria-hidden="true" style="margin-bottom: 16px;">🎉</div>
+        <h1 class="title">我們在一起了 💗</h1>
+        <p class="subtitle success-subtitle">未來的日子請多指教！</p>
+      </div>
+    </section>
+  </section>
 
   <script>
     // ── Page Lifecycle Callback Map ──
@@ -1107,6 +1149,129 @@
         showPage('page5');
       });
     }
+
+    // ── Helper ──
+    function stripEmoji(str) {
+      if (!str) return '';
+      try {
+        return str.replace(/\p{Extended_Pictographic}/gu, '').trim();
+      } catch(e) {
+        return str.replace(/\s+\S+$/, '').trim(); // fallback
+      }
+    }
+
+    // ── Page 6: Finale Logic ──
+    pageCallbacks['page6'] = function() {
+      // 組合動態文字，加入 Null 檢查
+      var page2Element = document.getElementById('chosenOption');
+      var page2Opt = page2Element ? page2Element.textContent : '';
+      var page5Opt = typeof chosenPage5Option !== 'undefined' ? chosenPage5Option : '';
+      
+      var p2Text = stripEmoji(page2Opt);
+      var p5Text = stripEmoji(page5Opt);
+
+      var confessionText = "接下來的日子裡，我想和妳" + p2Text + "，也想" + p5Text + "。想和妳創造好多好多回憶。";
+      document.getElementById('dynamicConfession').textContent = confessionText;
+
+      initNo2Position();
+    };
+
+    function handleFinaleYes() {
+      document.getElementById('finaleContent').style.display = 'none';
+      document.getElementById('successContent').style.display = 'flex';
+      
+      burst();
+      setTimeout(burst, 200);
+      setTimeout(burst, 400);
+      setTimeout(burst, 600);
+    }
+
+    var btnNo2 = document.getElementById('btnNo2');
+    var escapeCount2 = 0;
+    var surrendered2 = false;
+    var no2Initialized = false;
+
+    function initNo2Position() {
+      if (no2Initialized) return;
+      var card = document.getElementById('card6');
+      var cardRect = card.getBoundingClientRect();
+      var btnRect = btnNo2.getBoundingClientRect();
+
+      btnNo2.style.position = 'absolute';
+      btnNo2.style.left = (btnRect.left - cardRect.left - card.clientLeft) + 'px';
+      btnNo2.style.top  = (btnRect.top  - cardRect.top  - card.clientTop)  + 'px';
+      btnNo2.style.margin = '0';
+      no2Initialized = true;
+    }
+
+    function doEscape2(e) {
+      if (surrendered2) return;
+      if (e && e.type === 'touchstart' && e.cancelable) e.preventDefault();
+
+      initNo2Position();
+      escapeCount2++;
+
+      if (escapeCount2 >= 6) {
+        surrendered2 = true;
+        btnNo2.classList.add('surrendered');
+        btnNo2.textContent = '好啦我願意 💗';
+        btnNo2.style.background = 'linear-gradient(135deg, var(--rose-400), var(--lavender-300))';
+        btnNo2.style.color = '#fff';
+        btnNo2.style.position = 'static';
+        btnNo2.style.width = 'auto';
+        btnNo2.style.transform = 'none';
+        btnNo2.style.borderColor = 'transparent';
+        btnNo2.style.boxShadow = '0 4px 20px rgba(255, 107, 138, 0.35)';
+        return;
+      }
+
+      if (escapeCount2 >= 3) {
+        btnNo2.textContent = '妳逃不掉的 😜';
+      }
+
+      var card = document.getElementById('card6');
+      var cardRect = card.getBoundingClientRect();
+      var cx, cy;
+
+      if (e && e.touches && e.touches.length > 0) {
+        cx = e.touches[0].clientX - cardRect.left - card.clientLeft;
+        cy = e.touches[0].clientY - cardRect.top  - card.clientTop;
+      } else if (e && e.clientX !== undefined) {
+        cx = e.clientX - cardRect.left - card.clientLeft;
+        cy = e.clientY - cardRect.top  - card.clientTop;
+      } else {
+        cx = card.clientWidth  / 2;
+        cy = card.clientHeight / 2;
+      }
+
+      if (e && e.type === 'focus') btnNo2.blur();
+
+      var pad = 16;
+      var btnW = btnNo2.offsetWidth;
+      var btnH = btnNo2.offsetHeight;
+      var maxX = Math.max(0, card.clientWidth  - btnW - pad * 2);
+      var maxY = Math.max(0, card.clientHeight - btnH - pad * 2);
+      var nx, ny, dist, attempts = 0;
+
+      do {
+        nx = pad + Math.random() * maxX;
+        ny = pad + Math.random() * maxY;
+        dist = Math.hypot(nx + btnW / 2 - cx, ny + btnH / 2 - cy);
+        attempts++;
+      } while (dist < 80 && attempts < 20);
+
+      btnNo2.style.left = nx + 'px';
+      btnNo2.style.top  = ny + 'px';
+    }
+
+    btnNo2.addEventListener('mouseenter', doEscape2);
+    btnNo2.addEventListener('touchstart', doEscape2, { passive: false });
+    btnNo2.addEventListener('focus', doEscape2);
+    btnNo2.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (surrendered2) handleFinaleYes();
+      else doEscape2(e);
+    });
   </script>
 </body>
 </html>
