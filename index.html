@@ -373,6 +373,16 @@
       padding: 12px 0;
     }
 
+    /* Romantic poem — italic, lighter weight */
+    .promise-poem {
+      font-size: clamp(14px, 3.5vw, 16px);
+      font-style: italic;
+      font-weight: 400;
+      color: var(--text-secondary);
+      line-height: 2;
+      opacity: 0.9;
+    }
+
     .btn-back {
       font-family: 'Outfit', 'Noto Sans TC', sans-serif;
       font-size: 14px;
@@ -583,19 +593,22 @@
     </section>
   </section>
 
-  <!-- PAGE 3: Confirmation -->
+  <!-- PAGE 3: Promise Ceremony -->
   <section class="page" id="page3">
-    <section class="card" aria-label="約會確認">
-      <div class="big-emoji" id="p3Emoji" aria-hidden="true">💕</div>
-      <h1 class="title">太好了！！</h1>
+    <section class="card" aria-label="約定儀式感頁">
+      <div class="big-emoji" id="p3Emoji" aria-hidden="true">💗</div>
+      <h1 class="title">約定成功 ✨</h1>
       <p class="response-text">
         妳選擇了...
         <span class="chosen-highlight" id="chosenOption"></span>
-        那就說好囉，<br/>期待和妳在一起的每一刻 ✨
       </p>
-      <button class="btn-back" onclick="goBack()" aria-label="重新選擇">← 重新選擇</button>
+      <p class="promise-poem">在那天到來之前，<br/>我每天都會想著妳。</p>
+      <button class="btn btn-yes" id="btnContinue" onclick="showPage('page4')" aria-label="繼續前往下一頁">繼續 →</button>
     </section>
   </section>
+
+  <!-- PAGE 4: Placeholder (Task 3) -->
+  <section class="page" id="page4"></section>
 
   <script>
     // ── Background Effects (Orbs + Floating Hearts) ──
@@ -795,15 +808,16 @@
 
     function handleOption(opt) {
       document.getElementById('chosenOption').textContent = opt;
+      // Map Task 1 option strings → representative emoji for Page 3 header
       var emojiMap = {
-        '一起散步牽手 🌸': '🌸',
-        '一起看電影 🎬': '🎬',
-        '一起吃飯約會 🍜': '🍜',
-        '傳訊息聊到天亮 💬': '💬',
-        '一起拍可愛的合照 📸': '📸',
-        '以上全部都要 💖': '🥰'
+        '一起去公園散步，手牽著手 🌸': '🌸',
+        '找部電影一起看，靠在一起 🎬': '🎬',
+        '找家喜歡的餐廳好好吃頓飯 🍜': '🍜',
+        '深夜傳訊息聊到睡著 💬': '💬',
+        '到處走走，拍很多很多照片 📸': '📸',
+        '以上全部，一個都不想少 💖': '💖'
       };
-      document.getElementById('p3Emoji').textContent = emojiMap[opt] || '💕';
+      document.getElementById('p3Emoji').textContent = emojiMap[opt] || '💗';
       burst();
       setTimeout(function() { showPage('page3'); }, 450);
     }
