@@ -766,6 +766,49 @@
       fill: var(--text-primary) !important;
     }
 
+    /* ── Custom Month/Year Grids ── */
+    .glass-dropdown {
+      position: absolute;
+      top: 55px; /* just below the month header */
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(45, 27, 48, 0.2);
+      padding: 12px;
+      z-index: 100;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .glass-dropdown.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) scale(1);
+    }
+    .glass-dropdown-item {
+      padding: 12px 10px;
+      text-align: center;
+      border-radius: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 15px;
+    }
+    .glass-dropdown-item:hover {
+      background: linear-gradient(135deg, var(--rose-400), var(--lavender-300));
+      color: white;
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(255, 107, 138, 0.3);
+    }
+
     /* ── Mobile/Small Screen Calendar Modal Fix ── */
     @media (max-width: 480px), (max-height: 700px) {
       .glass-calendar.flatpickr-calendar.open {
@@ -1396,8 +1439,76 @@
           onReady: function(selectedDates, dateStr, instance) {
             instance.calendarContainer.classList.add('glass-calendar');
             if (instance.currentYearElement) {
-              instance.currentYearElement.disabled = true;
+              instance.currentYearElement.readOnly = true;
+              instance.currentYearElement.tabIndex = -1;
             }
+
+            // ── Custom Month/Year Dropdown Grids ──
+            var customHeaderHTML = `
+              <div id="customMonthDropdown" class="glass-dropdown"></div>
+              <div id="customYearDropdown" class="glass-dropdown"></div>
+            `;
+            instance.calendarContainer.insertAdjacentHTML('beforeend', customHeaderHTML);
+            
+            var monthDropdown = instance.calendarContainer.querySelector('#customMonthDropdown');
+            var yearDropdown = instance.calendarContainer.querySelector('#customYearDropdown');
+            
+            var monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+            monthNames.forEach(function(m, idx) {
+              var div = document.createElement('div');
+              div.className = 'glass-dropdown-item';
+              div.textContent = m;
+              div.onclick = function(e) {
+                e.stopPropagation();
+                instance.changeMonth(idx, false);
+                monthDropdown.classList.remove('show');
+              };
+              monthDropdown.appendChild(div);
+            });
+            
+            var currentY = new Date().getFullYear();
+            for (var i = currentY - 1; i < currentY + 8; i++) {
+              var div = document.createElement('div');
+              div.className = 'glass-dropdown-item';
+              div.textContent = i + "年";
+              let y = i;
+              div.onclick = function(e) {
+                e.stopPropagation();
+                instance.changeYear(y);
+                yearDropdown.classList.remove('show');
+              };
+              yearDropdown.appendChild(div);
+            }
+
+            // Bind click to Month Text
+            var curMonthSpan = instance.calendarContainer.querySelector('.cur-month');
+            if (curMonthSpan) {
+              curMonthSpan.style.cursor = 'pointer';
+              curMonthSpan.addEventListener('click', function(e) {
+                e.stopPropagation();
+                yearDropdown.classList.remove('show');
+                monthDropdown.classList.toggle('show');
+              });
+            }
+
+            // Bind click to Year Input
+            var curYearInput = instance.currentYearElement;
+            if (curYearInput) {
+              curYearInput.style.cursor = 'pointer';
+              // Make pointer-events auto so it can be clicked
+              curYearInput.style.pointerEvents = 'auto';
+              curYearInput.addEventListener('click', function(e) {
+                e.stopPropagation();
+                monthDropdown.classList.remove('show');
+                yearDropdown.classList.toggle('show');
+              });
+            }
+
+            // Close on outside click
+            document.addEventListener('click', function() {
+              monthDropdown.classList.remove('show');
+              yearDropdown.classList.remove('show');
+            });
 
             var wheelHTML = `
               <div class="custom-time-divider"></div>
