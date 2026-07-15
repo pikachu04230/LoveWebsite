@@ -531,6 +531,92 @@
         top: -20px; right: -20px; bottom: -20px; left: -20px;
       }
     }
+    /* ── Page 4: Slide-to-Unlock ── */
+    .slider-track {
+      position: relative;
+      width: 100%;
+      height: 64px;
+      border-radius: 32px;
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow:
+        inset 0 2px 8px rgba(45, 27, 48, 0.08),
+        0 2px 12px rgba(0, 0, 0, 0.04);
+      cursor: grab;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    .slider-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 0;
+      border-radius: 32px;
+      background: linear-gradient(135deg, var(--rose-400) 0%, var(--lavender-300) 100%);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .slider-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      pointer-events: none;
+      letter-spacing: 1px;
+    }
+
+    .slider-thumb {
+      position: absolute;
+      top: 50%;
+      left: 8px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--rose-400), var(--lavender-300));
+      box-shadow: 0 4px 16px rgba(255, 107, 138, 0.4);
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: grab;
+      touch-action: none;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .slider-thumb.dragging {
+      cursor: grabbing;
+      box-shadow: 0 6px 24px rgba(255, 107, 138, 0.55);
+    }
+
+    .slider-track.unlocked {
+      background: linear-gradient(135deg, var(--rose-200) 0%, var(--lavender-200) 100%);
+      cursor: default;
+    }
+
+    .skip-hint {
+      font-size: 13px;
+      color: var(--text-secondary);
+      opacity: 0.75;
+    }
+
+    .skip-link {
+      color: var(--rose-500);
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.2s ease;
+    }
+
+    @media (hover: hover) {
+      .skip-link:hover { opacity: 0.7; }
+    }
   </style>
 </head>
 <body>
@@ -607,10 +693,32 @@
     </section>
   </section>
 
-  <!-- PAGE 4: Placeholder (Task 3) -->
-  <section class="page" id="page4"></section>
+  <!-- PAGE 4: Slide-to-Unlock -->
+  <section class="page" id="page4">
+    <section class="card" aria-label="滑動解鎖">
+      <div class="big-emoji" aria-hidden="true">💕</div>
+      <h1 class="title">滑動解鎖我們的約會</h1>
+      <div class="slider-track" id="sliderTrack"
+           role="slider" aria-valuemin="0" aria-valuemax="100"
+           aria-valuenow="0" aria-label="滑動解鎖">
+        <div class="slider-label" id="sliderLabel">向右滑動 →</div>
+        <div class="slider-thumb" id="sliderThumb" aria-hidden="true">💕</div>
+      </div>
+      <p class="skip-hint">
+        或者 <a href="#" class="skip-link" id="btnSkip">直接跳過 →</a>
+      </p>
+    </section>
+  </section>
+
+  <!-- PAGE 5: Placeholder (Task 4) -->
+  <section class="page" id="page5"></section>
 
   <script>
+    // ── Page Lifecycle Callback Map ──
+    // One-shot callbacks dispatched by showPage when a target page becomes active.
+    // Usage: pageCallbacks['pageN'] = fn; (auto-deleted after first call)
+    var pageCallbacks = {};
+
     // ── Background Effects (Orbs + Floating Hearts) ──
     (function initBackground() {
       var container = document.getElementById('bgEffects');
@@ -798,6 +906,13 @@
         }
 
         target.classList.add('active');
+
+        // Dispatch one-shot page-enter callback if registered
+        if (pageCallbacks && pageCallbacks[targetId]) {
+          var cb = pageCallbacks[targetId];
+          delete pageCallbacks[targetId];
+          cb();
+        }
       }, 400);
     }
 
@@ -824,6 +939,136 @@
 
     function goBack() {
       showPage('page2');
+    }
+
+    // ── Page 4: Slide-to-Unlock Logic ──
+    var sliderInitialized = false;
+
+    // Register one-shot init callback; fires 420ms after page4 transition ends
+    pageCallbacks['page4'] = function() {
+      setTimeout(initSlider, 420);
+    };
+
+    function initSlider() {
+      if (sliderInitialized) return;
+      sliderInitialized = true;
+
+      var track   = document.getElementById('sliderTrack');
+      var thumb   = document.getElementById('sliderThumb');
+      var label   = document.getElementById('sliderLabel');
+      var skipBtn = document.getElementById('btnSkip');
+      var unlocked = false;
+      var dragging  = false;
+      var startX    = 0;
+      var startLeft = 0;
+      var THUMB_SIZE = 48;
+      var PAD        = 8;
+
+      // Insert fill bar dynamically so the HTML stays clean
+      var fill = document.createElement('div');
+      fill.className = 'slider-fill';
+      track.insertBefore(fill, track.firstChild);
+
+      function getTrackMax() {
+        return track.clientWidth - THUMB_SIZE - PAD * 2;
+      }
+
+      function setThumbPos(px) {
+        var max     = getTrackMax();
+        var clamped = Math.max(0, Math.min(px, max));
+        thumb.style.left = (PAD + clamped) + 'px';
+        fill.style.width = (PAD + clamped + THUMB_SIZE / 2) + 'px';
+        var pct = clamped / max;
+        label.style.opacity = Math.max(0, 1 - pct * 2).toString();
+        track.setAttribute('aria-valuenow', Math.round(pct * 100));
+        if (pct >= 0.85 && !unlocked) triggerUnlock();
+      }
+
+      function onPointerDown(e) {
+        if (unlocked) return;
+        dragging  = true;
+        startX    = e.touches ? e.touches[0].clientX : e.clientX;
+        startLeft = parseInt(thumb.style.left || PAD, 10) - PAD;
+        thumb.classList.add('dragging');
+        if (e.cancelable) e.preventDefault();
+      }
+
+      function onPointerMove(e) {
+        if (!dragging || unlocked) return;
+        var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        setThumbPos(startLeft + (clientX - startX));
+      }
+
+      function onPointerUp() {
+        if (!dragging || unlocked) return;
+        dragging = false;
+        thumb.classList.remove('dragging');
+        // Animate snap-back to start
+        thumb.style.transition = 'left 0.35s var(--ease-smooth)';
+        fill.style.transition  = 'width 0.35s var(--ease-smooth)';
+        thumb.style.left  = PAD + 'px';
+        fill.style.width  = '0';
+        label.style.opacity = '1';
+        track.setAttribute('aria-valuenow', 0);
+        setTimeout(function() {
+          thumb.style.transition = '';
+          fill.style.transition  = '';
+        }, 360);
+      }
+
+      // Named refs required for removeEventListener in cleanup()
+      function onMouseMove(e) { onPointerMove(e); }
+      function onMouseUp()    { onPointerUp();    }
+      function onTouchMove(e) { onPointerMove(e); }
+      function onTouchEnd()   { onPointerUp();    }
+
+      function cleanup() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup',   onMouseUp);
+        document.removeEventListener('touchmove', onTouchMove);
+        document.removeEventListener('touchend',  onTouchEnd);
+      }
+
+      function triggerUnlock() {
+        unlocked = true;
+        dragging = false;
+        cleanup(); // Stop listening globally — no more overhead
+        thumb.classList.remove('dragging');
+
+        // Snap thumb to the far end
+        var max = getTrackMax();
+        thumb.style.transition = 'left 0.2s ease';
+        fill.style.transition  = 'width 0.2s ease';
+        thumb.style.left  = (PAD + max) + 'px';
+        fill.style.width  = track.clientWidth + 'px';
+        label.style.opacity = '0';
+        thumb.textContent = '✓';
+        track.classList.add('unlocked');
+        track.setAttribute('aria-valuenow', 100);
+
+        // Show unlock confirmation text after snap animation
+        setTimeout(function() {
+          label.textContent   = '已解鎖 💗';
+          label.style.opacity = '1';
+        }, 220);
+
+        burst();
+        setTimeout(function() { showPage('page5'); }, 1200);
+      }
+
+      // Bind drag events
+      thumb.addEventListener('mousedown',  onPointerDown);
+      thumb.addEventListener('touchstart', onPointerDown, { passive: false });
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup',   onMouseUp);
+      document.addEventListener('touchmove', onTouchMove, { passive: true });
+      document.addEventListener('touchend',  onTouchEnd);
+
+      // Skip link
+      skipBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        showPage('page5');
+      });
     }
   </script>
 </body>
