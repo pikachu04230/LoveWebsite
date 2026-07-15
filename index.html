@@ -1358,6 +1358,38 @@
                 }
               }
               wheel.dataset.targetScroll = targetOffset;
+
+              // Prevent Flatpickr from stealing mouse wheel events to change months
+              wheel.addEventListener('wheel', function(e) {
+                e.stopPropagation();
+              }, { passive: true });
+
+              // Enable Mouse Drag-to-Scroll for Desktop
+              let isDown = false;
+              let startY;
+              let scrollTop;
+
+              wheel.addEventListener('mousedown', function(e) {
+                isDown = true;
+                wheel.style.scrollSnapType = 'none'; // disable snap during drag
+                startY = e.pageY - wheel.offsetTop;
+                scrollTop = wheel.scrollTop;
+              });
+              wheel.addEventListener('mouseleave', function() {
+                isDown = false;
+                wheel.style.scrollSnapType = 'y mandatory';
+              });
+              wheel.addEventListener('mouseup', function() {
+                isDown = false;
+                wheel.style.scrollSnapType = 'y mandatory';
+              });
+              wheel.addEventListener('mousemove', function(e) {
+                if (!isDown) return;
+                e.preventDefault();
+                const y = e.pageY - wheel.offsetTop;
+                const walk = (y - startY) * 1.5; // scrolling speed
+                wheel.scrollTop = scrollTop - walk;
+              });
             }
             
             populateWheel(hw, 0, 23, 1, true);
