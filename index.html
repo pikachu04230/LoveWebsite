@@ -281,8 +281,12 @@
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       z-index: 10;
+      /* Let width follow content — doEscape() reads offsetWidth after each
+         text update, so escape bounds always match the current button size. */
+      min-width: 100px;
       transition: left 0.25s var(--ease-smooth),
                   top 0.25s var(--ease-smooth),
+                  width 0.2s var(--ease-smooth),
                   background 0.3s ease,
                   color 0.3s ease;
     }
@@ -481,13 +485,24 @@
         width: 130px;
         height: 130px;
       }
+      /* Base mobile btn — do NOT force 100% width globally */
       .btn {
-        padding: 14px 28px;
-        font-size: 16px;
+        padding: 13px 24px;
+        font-size: 15px;
+      }
+      /* Yes button: full-width, prominent */
+      .btn-yes {
         width: 100%;
+        padding: 15px 28px;
+        font-size: 16px;
+      }
+      /* No button: auto width so escape logic has horizontal room */
+      .btn-no:not([style*="position: absolute"]) {
+        min-width: 120px;
       }
       .btn-row {
         flex-direction: column;
+        align-items: center;
         gap: 12px;
       }
       .option-grid {
@@ -634,11 +649,14 @@
       var cardRect = card.getBoundingClientRect();
       var btnRect = btnNo.getBoundingClientRect();
 
+      // Switch to absolute; correct for card's border offset so
+      // coordinates align with the padding-box origin used by CSS
       btnNo.style.position = 'absolute';
-      btnNo.style.left = (btnRect.left - cardRect.left) + 'px';
-      btnNo.style.top = (btnRect.top - cardRect.top) + 'px';
+      btnNo.style.left = (btnRect.left - cardRect.left - card.clientLeft) + 'px';
+      btnNo.style.top  = (btnRect.top  - cardRect.top  - card.clientTop)  + 'px';
       btnNo.style.margin = '0';
-      btnNo.style.width = btnRect.width + 'px';
+      // Do NOT lock width to the (possibly full-width) in-flow value;
+      // let CSS 'auto' apply so the button stays compact and escapable.
       noInitialized = true;
     }
 
@@ -672,26 +690,30 @@
       // Calculate escape destination within card bounds
       var card = document.getElementById('card1');
       var cardRect = card.getBoundingClientRect();
-      var btnW = btnNo.offsetWidth;
-      var btnH = btnNo.offsetHeight;
+      // btnW / btnH captured later after reading offsetWidth post-initNoPosition
       var cx, cy;
 
+      // Cursor coords relative to card's padding-box origin (matching left/top)
       if (e && e.touches && e.touches.length > 0) {
-        cx = e.touches[0].clientX - cardRect.left;
-        cy = e.touches[0].clientY - cardRect.top;
+        cx = e.touches[0].clientX - cardRect.left - card.clientLeft;
+        cy = e.touches[0].clientY - cardRect.top  - card.clientTop;
       } else if (e && e.clientX !== undefined) {
-        cx = e.clientX - cardRect.left;
-        cy = e.clientY - cardRect.top;
+        cx = e.clientX - cardRect.left - card.clientLeft;
+        cy = e.clientY - cardRect.top  - card.clientTop;
       } else {
-        cx = cardRect.width / 2;
-        cy = cardRect.height / 2;
+        cx = card.clientWidth  / 2;
+        cy = card.clientHeight / 2;
       }
 
       if (e && e.type === 'focus') btnNo.blur();
 
       var pad = 16;
-      var maxX = Math.max(0, cardRect.width - btnW - pad);
-      var maxY = Math.max(0, cardRect.height - btnH - pad);
+      // Use clientWidth/clientHeight (padding-box) — the actual coordinate
+      // space for position:absolute children, not the border-box rect.
+      var btnW = btnNo.offsetWidth;
+      var btnH = btnNo.offsetHeight;
+      var maxX = Math.max(0, card.clientWidth  - btnW - pad * 2);
+      var maxY = Math.max(0, card.clientHeight - btnH - pad * 2);
       var nx, ny, dist, attempts = 0;
 
       do {
@@ -702,7 +724,7 @@
       } while (dist < 80 && attempts < 20);
 
       btnNo.style.left = nx + 'px';
-      btnNo.style.top = ny + 'px';
+      btnNo.style.top  = ny + 'px';
     }
 
     btnNo.addEventListener('mouseenter', doEscape);
