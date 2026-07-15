@@ -2,7 +2,7 @@
 
 以下為根據 W3 專案健檢結果，依優先序排列的未來優化項目（Backlog）：
 
-## [P0] 修復 Page 4 記憶體洩漏漏洞
+## ✅ [P0] 修復 Page 4 記憶體洩漏漏洞 (已完成)
 - **目標**：確保全域事件被正確移除，避免記憶體與效能浪費。
 - **作法**：實作 `skipToPage5` 函式，在呼叫 `showPage('page5')` 跳頁前，強制呼叫解鎖邏輯的 `cleanup()` 來解除 `mousemove`, `mouseup`, `touchmove`, `touchend` 的事件綁定。
 

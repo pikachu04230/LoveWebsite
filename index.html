@@ -641,6 +641,17 @@
     .success-subtitle {
       margin-top: 12px;
     }
+
+    /* ── Escape Button Surrendered State ── */
+    .btn-no.surrendered {
+      background: linear-gradient(135deg, var(--rose-400), var(--lavender-300)) !important;
+      color: #fff !important;
+      position: static !important;
+      width: auto !important;
+      transform: none !important;
+      border-color: transparent !important;
+      box-shadow: 0 4px 20px rgba(255, 107, 138, 0.35) !important;
+    }
   </style>
 </head>
 <body>
@@ -831,103 +842,109 @@
     })();
 
     // ── Escaping NO Button ──
-    var btnNo = document.getElementById('btnNo');
-    var escapeCount = 0;
-    var surrendered = false;
-    var noInitialized = false;
+    class EscapeButton {
+      constructor(btnId, cardId, onSurrender, tauntText) {
+        this.btn = document.getElementById(btnId);
+        this.card = document.getElementById(cardId);
+        this.onSurrender = onSurrender;
+        this.tauntText = tauntText || '妳按不到的啦 😜';
+        this.escapeCount = 0;
+        this.surrendered = false;
+        this.initialized = false;
+        this.bindEvents();
+      }
 
-    function initNoPosition() {
-      if (noInitialized) return;
-      var card = document.getElementById('card1');
-      var cardRect = card.getBoundingClientRect();
-      var btnRect = btnNo.getBoundingClientRect();
+      initPosition() {
+        if (this.initialized) return;
+        var cardRect = this.card.getBoundingClientRect();
+        var btnRect = this.btn.getBoundingClientRect();
 
-      // Switch to absolute; correct for card's border offset so
-      // coordinates align with the padding-box origin used by CSS
-      btnNo.style.position = 'absolute';
-      btnNo.style.left = (btnRect.left - cardRect.left - card.clientLeft) + 'px';
-      btnNo.style.top  = (btnRect.top  - cardRect.top  - card.clientTop)  + 'px';
-      btnNo.style.margin = '0';
-      // Do NOT lock width to the (possibly full-width) in-flow value;
-      // let CSS 'auto' apply so the button stays compact and escapable.
-      noInitialized = true;
+        var placeholder = document.createElement('div');
+        placeholder.style.width = btnRect.width + 'px';
+        placeholder.style.height = btnRect.height + 'px';
+        placeholder.style.margin = window.getComputedStyle(this.btn).margin;
+        this.btn.parentNode.insertBefore(placeholder, this.btn);
+
+        this.btn.style.position = 'absolute';
+        this.btn.style.left = (btnRect.left - cardRect.left - this.card.clientLeft) + 'px';
+        this.btn.style.top  = (btnRect.top  - cardRect.top  - this.card.clientTop)  + 'px';
+        this.btn.style.margin = '0';
+        this.initialized = true;
+      }
+
+      doEscape(e) {
+        if (this.surrendered) return;
+        if (e && e.type === 'touchstart' && e.cancelable) e.preventDefault();
+
+        this.initPosition();
+        this.escapeCount++;
+
+        if (this.escapeCount >= 6) {
+          this.surrendered = true;
+          this.btn.classList.add('surrendered');
+          this.btn.textContent = '好啦我願意 💗';
+          return;
+        }
+
+        if (this.escapeCount >= 3) {
+          this.btn.textContent = this.tauntText;
+        }
+
+        var cardRect = this.card.getBoundingClientRect();
+        var cx = this.card.clientWidth / 2, cy = this.card.clientHeight / 2;
+
+        if (e && e.touches && e.touches.length > 0) {
+          cx = e.touches[0].clientX - cardRect.left - this.card.clientLeft;
+          cy = e.touches[0].clientY - cardRect.top  - this.card.clientTop;
+        } else if (e && e.clientX !== undefined) {
+          cx = e.clientX - cardRect.left - this.card.clientLeft;
+          cy = e.clientY - cardRect.top  - this.card.clientTop;
+        }
+
+        var pad = 16;
+        var btnW = this.btn.offsetWidth;
+        var btnH = this.btn.offsetHeight;
+        var maxW = this.card.clientWidth;
+        var maxH = this.card.clientHeight;
+
+        if (maxW <= btnW + pad * 2 || maxH <= btnH + pad * 2) {
+          this.escapeCount = 6;
+          this.doEscape(e);
+          return;
+        }
+
+        var maxX = maxW - btnW - pad;
+        var maxY = maxH - btnH - pad;
+        var nx, ny, dist, attempts = 0;
+
+        do {
+          nx = pad + Math.random() * (maxX - pad);
+          ny = pad + Math.random() * (maxY - pad);
+          dist = Math.hypot(nx + btnW / 2 - cx, ny + btnH / 2 - cy);
+          attempts++;
+        } while (dist < 80 && attempts < 20);
+
+        nx = Math.max(pad, Math.min(nx, maxX));
+        ny = Math.max(pad, Math.min(ny, maxY));
+
+        this.btn.style.left = nx + 'px';
+        this.btn.style.top  = ny + 'px';
+      }
+
+      bindEvents() {
+        var _this = this;
+        this.btn.addEventListener('mouseenter', function(e) { _this.doEscape(e); });
+        this.btn.addEventListener('touchstart', function(e) { _this.doEscape(e); }, { passive: false });
+        this.btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (_this.surrendered) _this.onSurrender();
+          else _this.doEscape(e);
+        });
+      }
     }
 
-    function doEscape(e) {
-      if (surrendered) return;
-      if (e && e.type === 'touchstart' && e.cancelable) e.preventDefault();
-
-      initNoPosition();
-      escapeCount++;
-
-      // Surrender after enough attempts
-      if (escapeCount >= 6) {
-        surrendered = true;
-        btnNo.classList.add('surrendered');
-        btnNo.textContent = '好啦我願意 💗';
-        btnNo.style.background = 'linear-gradient(135deg, var(--rose-400), var(--lavender-300))';
-        btnNo.style.color = '#fff';
-        btnNo.style.position = 'static';
-        btnNo.style.width = 'auto';
-        btnNo.style.transform = 'none';
-        btnNo.style.borderColor = 'transparent';
-        btnNo.style.boxShadow = '0 4px 20px rgba(255, 107, 138, 0.35)';
-        return;
-      }
-
-      // Taunt after 3 attempts
-      if (escapeCount >= 3) {
-        btnNo.textContent = '妳按不到的啦 😜';
-      }
-
-      // Calculate escape destination within card bounds
-      var card = document.getElementById('card1');
-      var cardRect = card.getBoundingClientRect();
-      // btnW / btnH captured later after reading offsetWidth post-initNoPosition
-      var cx, cy;
-
-      // Cursor coords relative to card's padding-box origin (matching left/top)
-      if (e && e.touches && e.touches.length > 0) {
-        cx = e.touches[0].clientX - cardRect.left - card.clientLeft;
-        cy = e.touches[0].clientY - cardRect.top  - card.clientTop;
-      } else if (e && e.clientX !== undefined) {
-        cx = e.clientX - cardRect.left - card.clientLeft;
-        cy = e.clientY - cardRect.top  - card.clientTop;
-      } else {
-        cx = card.clientWidth  / 2;
-        cy = card.clientHeight / 2;
-      }
-
-      if (e && e.type === 'focus') btnNo.blur();
-
-      var pad = 16;
-      // Use clientWidth/clientHeight (padding-box) — the actual coordinate
-      // space for position:absolute children, not the border-box rect.
-      var btnW = btnNo.offsetWidth;
-      var btnH = btnNo.offsetHeight;
-      var maxX = Math.max(0, card.clientWidth  - btnW - pad * 2);
-      var maxY = Math.max(0, card.clientHeight - btnH - pad * 2);
-      var nx, ny, dist, attempts = 0;
-
-      do {
-        nx = pad + Math.random() * maxX;
-        ny = pad + Math.random() * maxY;
-        dist = Math.hypot(nx + btnW / 2 - cx, ny + btnH / 2 - cy);
-        attempts++;
-      } while (dist < 80 && attempts < 20);
-
-      btnNo.style.left = nx + 'px';
-      btnNo.style.top  = ny + 'px';
-    }
-
-    btnNo.addEventListener('mouseenter', doEscape);
-    btnNo.addEventListener('touchstart', doEscape, { passive: false });
-    btnNo.addEventListener('focus', doEscape);
-    btnNo.addEventListener('click', function(e) {
-      e.preventDefault();
-      if (surrendered) handleYes();
-      else doEscape(e);
-    });
+    var escapeBtn1 = new EscapeButton('btnNo', 'card1', handleYes, '妳按不到的啦 😜');
+    var escapeBtn2 = new EscapeButton('btnNo2', 'card6', handleFinaleYes, '妳逃不掉的 😜');
 
     // ── Confetti Particle System ──
     function burst() {
@@ -1174,7 +1191,6 @@
       var confessionText = "接下來的日子裡，我想和妳" + p2Text + "，也想" + p5Text + "。想和妳創造好多好多回憶。";
       document.getElementById('dynamicConfession').textContent = confessionText;
 
-      initNo2Position();
     };
 
     function handleFinaleYes() {
@@ -1187,92 +1203,7 @@
       setTimeout(burst, 600);
     }
 
-    var btnNo2 = document.getElementById('btnNo2');
-    var escapeCount2 = 0;
-    var surrendered2 = false;
-    var no2Initialized = false;
 
-    function initNo2Position() {
-      if (no2Initialized) return;
-      var card = document.getElementById('card6');
-      var cardRect = card.getBoundingClientRect();
-      var btnRect = btnNo2.getBoundingClientRect();
-
-      btnNo2.style.position = 'absolute';
-      btnNo2.style.left = (btnRect.left - cardRect.left - card.clientLeft) + 'px';
-      btnNo2.style.top  = (btnRect.top  - cardRect.top  - card.clientTop)  + 'px';
-      btnNo2.style.margin = '0';
-      no2Initialized = true;
-    }
-
-    function doEscape2(e) {
-      if (surrendered2) return;
-      if (e && e.type === 'touchstart' && e.cancelable) e.preventDefault();
-
-      initNo2Position();
-      escapeCount2++;
-
-      if (escapeCount2 >= 6) {
-        surrendered2 = true;
-        btnNo2.classList.add('surrendered');
-        btnNo2.textContent = '好啦我願意 💗';
-        btnNo2.style.background = 'linear-gradient(135deg, var(--rose-400), var(--lavender-300))';
-        btnNo2.style.color = '#fff';
-        btnNo2.style.position = 'static';
-        btnNo2.style.width = 'auto';
-        btnNo2.style.transform = 'none';
-        btnNo2.style.borderColor = 'transparent';
-        btnNo2.style.boxShadow = '0 4px 20px rgba(255, 107, 138, 0.35)';
-        return;
-      }
-
-      if (escapeCount2 >= 3) {
-        btnNo2.textContent = '妳逃不掉的 😜';
-      }
-
-      var card = document.getElementById('card6');
-      var cardRect = card.getBoundingClientRect();
-      var cx, cy;
-
-      if (e && e.touches && e.touches.length > 0) {
-        cx = e.touches[0].clientX - cardRect.left - card.clientLeft;
-        cy = e.touches[0].clientY - cardRect.top  - card.clientTop;
-      } else if (e && e.clientX !== undefined) {
-        cx = e.clientX - cardRect.left - card.clientLeft;
-        cy = e.clientY - cardRect.top  - card.clientTop;
-      } else {
-        cx = card.clientWidth  / 2;
-        cy = card.clientHeight / 2;
-      }
-
-      if (e && e.type === 'focus') btnNo2.blur();
-
-      var pad = 16;
-      var btnW = btnNo2.offsetWidth;
-      var btnH = btnNo2.offsetHeight;
-      var maxX = Math.max(0, card.clientWidth  - btnW - pad * 2);
-      var maxY = Math.max(0, card.clientHeight - btnH - pad * 2);
-      var nx, ny, dist, attempts = 0;
-
-      do {
-        nx = pad + Math.random() * maxX;
-        ny = pad + Math.random() * maxY;
-        dist = Math.hypot(nx + btnW / 2 - cx, ny + btnH / 2 - cy);
-        attempts++;
-      } while (dist < 80 && attempts < 20);
-
-      btnNo2.style.left = nx + 'px';
-      btnNo2.style.top  = ny + 'px';
-    }
-
-    btnNo2.addEventListener('mouseenter', doEscape2);
-    btnNo2.addEventListener('touchstart', doEscape2, { passive: false });
-    btnNo2.addEventListener('focus', doEscape2);
-    btnNo2.addEventListener('click', function(e) {
-      e.preventDefault();
-      if (surrendered2) handleFinaleYes();
-      else doEscape2(e);
-    });
   </script>
 </body>
 </html>
