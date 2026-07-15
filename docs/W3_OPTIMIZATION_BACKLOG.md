@@ -6,14 +6,14 @@
 - **目標**：確保全域事件被正確移除，避免記憶體與效能浪費。
 - **作法**：實作 `skipToPage5` 函式，在呼叫 `showPage('page5')` 跳頁前，強制呼叫解鎖邏輯的 `cleanup()` 來解除 `mousemove`, `mouseup`, `touchmove`, `touchend` 的事件綁定。
 
-## [P1] 重構「逃跑按鈕」邏輯與無障礙修復
+## ✅ [P1] 重構「逃跑按鈕」邏輯與無障礙修復 (已完成)
 - **目標**：消除程式碼重複 (DRY 原則)、修復越界失效與無障礙操作阻斷。
 - **作法**：
   1. 將 Page 1 和 Page 6 的逃跑按鈕 (`doEscape`, `doEscape2`) 邏輯封裝為共用 Function 或是 Class，傳入指定的 DOM 元素與邊界元素即可運作。
   2. 移除 `btnNo.addEventListener('focus', doEscape)` 的綁定，保留單純的點擊與觸控逃跑。
   3. 實作嚴格的邊界 `Clamp` 機制，確保按鈕座標落在 `(0, window.innerWidth - buttonWidth)` 安全範圍內。
 
-## [P2] CSS 樣式清理與模組化
+## ✅ [P2] CSS 樣式清理與模組化 (已完成)
 - **目標**：落實關注點分離，消除過度使用的 Inline Styles。
 - **作法**：
   - 將 JS 中動態設定的按鈕投降狀態（`background`, `color`, `box-shadow` 等）移回 HTML `<style>` 區塊建立如 `.btn-no.surrendered` 等 class，JS 端僅呼叫 `classList.add('surrendered')` 控制。

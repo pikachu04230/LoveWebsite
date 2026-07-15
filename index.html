@@ -851,6 +851,7 @@
         this.escapeCount = 0;
         this.surrendered = false;
         this.initialized = false;
+        this.placeholder = null;
         this.bindEvents();
       }
 
@@ -859,11 +860,11 @@
         var cardRect = this.card.getBoundingClientRect();
         var btnRect = this.btn.getBoundingClientRect();
 
-        var placeholder = document.createElement('div');
-        placeholder.style.width = btnRect.width + 'px';
-        placeholder.style.height = btnRect.height + 'px';
-        placeholder.style.margin = window.getComputedStyle(this.btn).margin;
-        this.btn.parentNode.insertBefore(placeholder, this.btn);
+        this.placeholder = document.createElement('div');
+        this.placeholder.style.width = btnRect.width + 'px';
+        this.placeholder.style.height = btnRect.height + 'px';
+        this.placeholder.style.margin = window.getComputedStyle(this.btn).margin;
+        this.btn.parentNode.insertBefore(this.placeholder, this.btn);
 
         this.btn.style.position = 'absolute';
         this.btn.style.left = (btnRect.left - cardRect.left - this.card.clientLeft) + 'px';
@@ -883,6 +884,10 @@
           this.surrendered = true;
           this.btn.classList.add('surrendered');
           this.btn.textContent = '好啦我願意 💗';
+          if (this.placeholder && this.placeholder.parentNode) {
+            this.placeholder.parentNode.removeChild(this.placeholder);
+            this.placeholder = null;
+          }
           return;
         }
 
@@ -907,25 +912,39 @@
         var maxW = this.card.clientWidth;
         var maxH = this.card.clientHeight;
 
-        if (maxW <= btnW + pad * 2 || maxH <= btnH + pad * 2) {
+        var minX = pad;
+        var minY = pad;
+        var maxX = maxW - btnW - pad;
+        var maxY = maxH - btnH - pad;
+
+        // Ensure button does not overflow the visible viewport
+        var viewMinX = pad - cardRect.left - this.card.clientLeft;
+        var viewMinY = pad - cardRect.top - this.card.clientTop;
+        var viewMaxX = window.innerWidth - cardRect.left - this.card.clientLeft - btnW - pad;
+        var viewMaxY = window.innerHeight - cardRect.top - this.card.clientTop - btnH - pad;
+
+        minX = Math.max(minX, viewMinX);
+        minY = Math.max(minY, viewMinY);
+        maxX = Math.min(maxX, viewMaxX);
+        maxY = Math.min(maxY, viewMaxY);
+
+        if (maxX <= minX || maxY <= minY) {
           this.escapeCount = 6;
           this.doEscape(e);
           return;
         }
 
-        var maxX = maxW - btnW - pad;
-        var maxY = maxH - btnH - pad;
         var nx, ny, dist, attempts = 0;
 
         do {
-          nx = pad + Math.random() * (maxX - pad);
-          ny = pad + Math.random() * (maxY - pad);
+          nx = minX + Math.random() * (maxX - minX);
+          ny = minY + Math.random() * (maxY - minY);
           dist = Math.hypot(nx + btnW / 2 - cx, ny + btnH / 2 - cy);
           attempts++;
         } while (dist < 80 && attempts < 20);
 
-        nx = Math.max(pad, Math.min(nx, maxX));
-        ny = Math.max(pad, Math.min(ny, maxY));
+        nx = Math.max(minX, Math.min(nx, maxX));
+        ny = Math.max(minY, Math.min(ny, maxY));
 
         this.btn.style.left = nx + 'px';
         this.btn.style.top  = ny + 'px';
