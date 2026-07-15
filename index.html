@@ -717,6 +717,54 @@
       z-index: 2;
     }
 
+    /* ── Clean Month/Year Header ── */
+    .glass-calendar .flatpickr-month {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .glass-calendar .flatpickr-current-month {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      padding-top: 0;
+    }
+    .glass-calendar .numInputWrapper span.arrowUp,
+    .glass-calendar .numInputWrapper span.arrowDown {
+      display: none;
+    }
+    .glass-calendar .flatpickr-current-month input.cur-year {
+      background: transparent;
+      font-weight: 700;
+      font-size: 18px;
+      padding: 0;
+    }
+    .glass-calendar .flatpickr-prev-month,
+    .glass-calendar .flatpickr-next-month {
+      border-radius: 50%;
+      margin: 5px 10px;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      height: 30px;
+      width: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .glass-calendar .flatpickr-prev-month:hover,
+    .glass-calendar .flatpickr-next-month:hover {
+      background: rgba(255, 255, 255, 0.5);
+      transform: scale(1.1);
+    }
+    .glass-calendar .flatpickr-prev-month svg,
+    .glass-calendar .flatpickr-next-month svg {
+      fill: var(--text-primary) !important;
+    }
+
     .shake {
       animation: shakeX 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
     }
@@ -1298,6 +1346,7 @@
           minDate: "today",
           disableMobile: true,
           closeOnSelect: false,
+          monthSelectorType: "static",
           locale: "zh_tw",
           onChange: function(selectedDates, dateStr, instance) {
             document.getElementById('dateHint').style.opacity = '0';
@@ -1308,6 +1357,11 @@
             }
           },
           onReady: function(selectedDates, dateStr, instance) {
+            instance.calendarContainer.classList.add('glass-calendar');
+            if (instance.currentYearElement) {
+              instance.currentYearElement.disabled = true;
+            }
+
             var wheelHTML = `
               <div class="custom-time-divider"></div>
               <div class="time-wheel-container">
