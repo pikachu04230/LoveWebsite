@@ -689,7 +689,7 @@
       scroll-snap-type: y mandatory;
       scrollbar-width: none;
       -ms-overflow-style: none;
-      padding: 35px 0;
+      padding: 0;
     }
     .time-wheel::-webkit-scrollbar {
       display: none;
@@ -703,6 +703,7 @@
       color: var(--text-secondary);
       scroll-snap-align: center;
       transition: all 0.2s;
+      cursor: pointer;
     }
     .wheel-item.active {
       color: var(--rose-500);
@@ -1397,6 +1398,13 @@
               }, { root: wheel, rootMargin: "-35px 0px -35px 0px", threshold: 0.5 });
 
               var targetOffset = 0;
+
+              // Add spacer to fix iOS/desktop padding-bottom scroll calculation bug
+              var spacerBefore = document.createElement('div');
+              spacerBefore.style.height = '35px';
+              spacerBefore.style.flexShrink = '0';
+              wheel.appendChild(spacerBefore);
+
               for (var i = start; i <= end; i += step) {
                 var val = i < 10 ? '0' + i : '' + i;
                 var div = document.createElement('div');
@@ -1411,6 +1419,13 @@
                   targetOffset = Math.floor((i - start) / step) * 30;
                 }
               }
+
+              // Add spacer to fix iOS/desktop padding-bottom scroll calculation bug
+              var spacerAfter = document.createElement('div');
+              spacerAfter.style.height = '35px';
+              spacerAfter.style.flexShrink = '0';
+              wheel.appendChild(spacerAfter);
+
               wheel.dataset.targetScroll = targetOffset;
 
               // Prevent Flatpickr from stealing mouse wheel events to change months
@@ -1418,29 +1433,51 @@
                 e.stopPropagation();
               }, { passive: true });
 
+              // Enable Click-to-Select
+              wheel.addEventListener('click', function(e) {
+                var item = e.target.closest('.wheel-item');
+                if (item) {
+                  var val = parseInt(item.dataset.value, 10);
+                  var index = Math.floor((val - start) / step);
+                  wheel.scrollTo({ top: index * 30, behavior: 'smooth' });
+                }
+              });
+
               // Enable Mouse Drag-to-Scroll for Desktop
               let isDown = false;
               let startY;
               let scrollTop;
 
+              function snapToNearest() {
+                wheel.style.scrollSnapType = 'y mandatory';
+                var index = Math.round(wheel.scrollTop / 30);
+                var maxIndex = Math.floor((end - start) / step);
+                index = Math.max(0, Math.min(index, maxIndex));
+                wheel.scrollTo({ top: index * 30, behavior: 'smooth' });
+              }
+
               wheel.addEventListener('mousedown', function(e) {
                 isDown = true;
                 wheel.style.scrollSnapType = 'none'; // disable snap during drag
-                startY = e.pageY - wheel.offsetTop;
+                startY = e.pageY;
                 scrollTop = wheel.scrollTop;
               });
               wheel.addEventListener('mouseleave', function() {
-                isDown = false;
-                wheel.style.scrollSnapType = 'y mandatory';
+                if (isDown) {
+                  isDown = false;
+                  snapToNearest();
+                }
               });
               wheel.addEventListener('mouseup', function() {
-                isDown = false;
-                wheel.style.scrollSnapType = 'y mandatory';
+                if (isDown) {
+                  isDown = false;
+                  snapToNearest();
+                }
               });
               wheel.addEventListener('mousemove', function(e) {
                 if (!isDown) return;
                 e.preventDefault();
-                const y = e.pageY - wheel.offsetTop;
+                const y = e.pageY;
                 const walk = (y - startY) * 1.5; // scrolling speed
                 wheel.scrollTop = scrollTop - walk;
               });
